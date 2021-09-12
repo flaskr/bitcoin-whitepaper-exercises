@@ -47,14 +47,50 @@ countMyEarnings();
 
 function addPoem() {
 	// TODO: add lines of poem as transactions to the transaction-pool
+	poem.forEach(line => {
+		const randomFee = Math.floor(Math.random() * 10) + 1; //random 1 to 10
+		const txn = {
+			data: line,
+			fee: randomFee
+		}
+		transactionPool.push(txn);
+	});
 }
 
 function processPool() {
 	// TODO: process the transaction-pool in order of highest fees
+	transactionPool.sort((t1, t2) => t2.fee - t1.fee);
+	let currentBlock = null;
+	transactionPool.forEach(txn => {
+		if (!currentBlock || currentBlock.data.length >= maxBlockSize) {
+			if (currentBlock) {
+				Blockchain.blocks.push(currentBlock);
+			}
+			currentBlock = createBlock(txn.data);
+			currentBlock.blockFee = blockFee;
+			currentBlock.hash = blockHash(currentBlock);
+			currentBlock.account = PUB_KEY_TEXT;
+			currentBlock.data = [];
+		}
+		currentBlock.data.push(txn);
+	});
+	Blockchain.blocks.push(currentBlock); //flush the block containing the last txn.
+
 }
 
 function countMyEarnings() {
 	// TODO: count up block-fees and transaction-fees
+	const blocksWithoutGenesis = Blockchain.blocks.slice(1);
+	let sum = 0;
+	blocksWithoutGenesis.forEach(block => {
+		sum += block.blockFee;
+		block.data.forEach(txn => {
+			console.log("TxnFee: "+ txn.fee);
+			sum += txn.fee
+		});
+	})
+	console.log("Total fees: " + sum);
+
 }
 
 function createBlock(data) {
