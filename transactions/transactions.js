@@ -41,12 +41,28 @@ addPoem()
 
 // **********************************
 
+function createTransaction(line) {
+	let txn = {
+		data: line
+	};
+	txn.hash = transactionHash(txn);
+	return txn;
+}
+
+async function authorizeTransaction(txn) {
+	txn.pubKey = PUB_KEY_TEXT;
+	txn.signature = await createSignature(txn.data, PRIV_KEY_TEXT);
+}
+
 async function addPoem() {
 	var transactions = [];
 
 	// TODO: add poem lines as authorized transactions
-	// for (let line of poem) {
-	// }
+	for (let line of poem) {
+		const txn = createTransaction(line);
+		await authorizeTransaction(txn);
+		transactions.push(txn);
+	}
 
 	var bl = createBlock(transactions);
 
@@ -129,8 +145,24 @@ async function verifyBlock(bl) {
 		if (!Array.isArray(bl.data)) return false;
 
 		// TODO: verify transactions in block
+		for (const txn of bl.data) {
+			console.log(verifyTransaction(txn));
+		}
 	}
 
+	return true;
+}
+
+function verifyTransaction(txn) {
+	if (txn.hash !== transactionHash(txn)) {
+		return false;
+	}
+	if (!txn.pubKey || !txn.signature) {
+		return false;
+	}
+	if (!verifySignature(txn.signature, txn.pubKey)) {
+		return false;
+	}
 	return true;
 }
 
