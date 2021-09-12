@@ -21,6 +21,7 @@ var Blockchain = {
 	blocks: [],
 };
 
+
 // Genesis block
 Blockchain.blocks.push({
 	index: 0,
@@ -55,10 +56,45 @@ function createBlock(data) {
 
 function blockHash(bl) {
 	// TODO
+	while (true) {
+		bl.nonce = Math.trunc(Math.random() * 1E7);
+		let hash = crypto.createHash("sha256").update(
+			`${bl.index};${bl.prevHash};${JSON.stringify(bl.data)};${bl.timestamp};${bl.nonce}`
+		).digest("hex");
+
+		if (hashIsLowEnough(hash)) {
+			return hash;
+		}
+	}
 }
 
+
+
 function hashIsLowEnough(hash) {
-	// TODO
+	
+	// function hex2bin(num) {
+	// 	return parseInt(num, 16).toString(2); //parse String-number from base 16 to base 2.
+	// }
+	
+	// Initial draft
+	// const hashToCompare = hash.substring(0, Math.ceil(difficulty/4));
+	// const trimmedBinaryOfHash = hex2bin(hashToCompare).substring(0, difficulty);
+	// const targetBinary = "".padStart(difficulty, "0");
+	// console.log(trimmedBinaryOfHash + "vs" + targetBinary);
+	// return trimmedBinaryOfHash === targetBinary;
+	
+	//Exploratory Draft
+	// var neededChars = Math.ceil(difficulty / 4);
+	// var threshold = `0b${"".padStart(neededChars * 4,"1111".padStart(4 + difficulty,"0"))}`;
+	// var prefix = `0x${hash.substr(0,neededChars)}`;
+	// var prefixBinStr = `0b${hex2bin(hash.substr(0,neededChars))}`
+	// var fullBinStr = `0b${hex2bin(hash)}`
+	// console.log(threshold + "vs" + prefix+"="+prefixBinStr+"=="+fullBinStr);
+	
+	var neededChars = Math.ceil(difficulty / 4);
+	var threshold = Number(`0b${"".padStart(neededChars * 4,"1111".padStart(4 + difficulty,"0"))}`);
+	var prefix = Number(`0x${hash.substr(0,neededChars)}`);
+	return prefix <= threshold;
 }
 
 function verifyBlock(bl) {
@@ -91,3 +127,5 @@ function verifyChain(chain) {
 
 	return true;
 }
+
+
